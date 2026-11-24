@@ -12,7 +12,8 @@ from datetime import datetime, timezone
 
 TTL = 20
 # admin page: title, category, required integrations, settings form (server.py SETTINGS doc)
-META = {'title': 'Webcams',
+META = {'heavy': True,  # live video: skipped on low-power views
+ 'title': 'Webcams',
  'category': 'Webcams',
  'about': "Live muted video, following the sun: only cams where it's daytime.",
  'settings': [{'key': 'daylight', 'label': 'Only cams in daylight', 'type': 'bool'},

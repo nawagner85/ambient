@@ -129,7 +129,7 @@ function viewEditor() {
   const sizeSel = h('select', {
     onchange: (e) => {
       const s = SIZES[+e.target.value]; if (!s) return;
-      v.width = s[1]; v.height = s[2]; render();
+      v.width = s[1]; v.height = s[2]; if (/Show 5/.test(s[0])) v.lite = true; render();
     },
   }, h('option', { value: '' }, 'Custom'),
   SIZES.map((s, i) => h('option', { value: i, selected: s[1] === v.width && s[2] === v.height || null }, `${s[0]} (${s[1]}×${s[2]})`)));
@@ -159,6 +159,8 @@ function viewEditor() {
       h('label.f', 'Screen size', sizeSel)),
     h('div.row', num('width', 'Width (CSS px)'), num('height', 'Height (CSS px)')),
     h('label.f', 'Photo album', albumSel),
+    h('label.chk', h('input', { type: 'checkbox', checked: !!v.lite, onchange: (e) => { v.lite = e.target.checked || undefined; render(); } }),
+      'Low-power screen', h('span.muted.small', ' — no live video, no starfield clock, reloads every 2 h (Echo Show 5, old tablets)')),
     h('h3', 'Rotation'),
     h('div.row',
       num('photos_between', 'Photos between cards', rot, S.rotation.photos_between),
@@ -183,6 +185,7 @@ function cardRow(c) {
     h('label.sw', h('input', { type: 'checkbox', checked: on, onchange: (e) => { v.cards[c.id] = e.target.checked; markDirty(); } }), h('span')),
     h('div.nm', h('b', c.name), h('small', c.about)),
     kind ? h('span.tag', kind) : null,
+    c.heavy && v.lite ? h('span.tag.warn', { title: 'Skipped: this view is low-power' }, 'off: low-power') : null,
     c.overridden ? h('span.tag.edit', { title: 'Settings changed from the defaults' }, 'edited') : null,
     missing.length ? h('span.tag.warn', { title: 'Needs ' + missing.join(', ') + ' (Integrations)' }, 'needs ' + missing.join(', ')) : null,
     h('button.icon', { title: 'Preview this card', onclick: () => setPreview(c.id) }, '▶'),

@@ -397,6 +397,8 @@ def cards_for(cfg, show, now, preview=False):
     for c in cfg["cards"]:
         if not needs_ready(c):  # e.g. no TMDb token: the streaming cards just stay out of the rotation
             continue
+        if not preview and cfg["views"].get(show, {}).get("lite") and getattr(CARDS.mods.get(c["type"]), "META", {}).get("heavy"):
+            continue  # low-power screen: no live video
         c = view_card(cfg, c, show) if not preview else c
         if c and (preview or in_window(c.get("when"), now)):
             out.append(c)
@@ -439,7 +441,7 @@ def admin_state(handler=None):
         cards.append({"id": c["id"], "type": c["type"], "name": card_name(c), "category": meta.get("category", "Other"),
                       "about": meta.get("about", ""), "needs": meta.get("needs", []), "settings": meta.get("settings", []),
                       "options": c["options"], "defaults": base[c["id"]].get("options", {}),
-                      "interrupt": bool(c.get("interrupt")), "layer": c.get("layer"),
+                      "interrupt": bool(c.get("interrupt")), "layer": c.get("layer"), "heavy": bool(meta.get("heavy")),
                       "schedule": {k: c.get(k) for k in OVERRIDABLE}, "overridden": bool(ov),
                       "default_shows": base[c["id"]].get("shows"), "default_enabled": base[c["id"]].get("enabled", True) is not False})
     integ = []
@@ -487,6 +489,8 @@ def clean_view(v):
            "width": max(200, min(4000, int(v.get("width") or 961))), "height": max(150, min(4000, int(v.get("height") or 601))),
            "album": str(v.get("album") or "") if UUID.match(str(v.get("album") or "")) else "",
            "cards": {str(k): bool(x) for k, x in (v.get("cards") or {}).items()}}
+    if v.get("lite"):
+        out["lite"] = True
     rot = {k: int(x) for k, x in (v.get("rotation") or {}).items()
            if k in ("photos_between", "photo_seconds", "card_seconds") and x not in (None, "")}
     if rot:
@@ -717,6 +721,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, {
                     "show": show, "showName": view.get("name", show),
                     "rotation": dict(cfg.get("rotation", {}), **view.get("rotation", {})),
+                    "lite": bool(view.get("lite")),
                     "cards": [{k: c.get(k) for k in ("id", "type", "duration", "interrupt", "overlay", "repeat_minutes", "every_minutes", "layer")}
                               for c in cards_for(cfg, show, now)],
                     # code hash + admin edits: open pages reload when either changes

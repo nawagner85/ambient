@@ -53,6 +53,7 @@ async function api(path) {
 async function loadConfig() {
   const c = await api('api/config');
   if (cfg && c.version !== cfg.version) location.reload();  // new deploy: pick up new code
+  env.lite = !!c.lite;
   for (const card of c.cards) {
     if (!mods[card.type]) {
       try { mods[card.type] = await import(`cards/${card.type}.js?v=${c.version}`); }
@@ -231,7 +232,7 @@ async function boot() {
   setInterval(() => loadConfig().catch(() => {}), 60000);  // picks up deploys and admin edits
   setInterval(pollInterrupts, R().interrupt_poll_seconds * 1000);
   setInterval(tickCorner, 30000);
-  setTimeout(() => location.reload(), 6 * 3600000);  // WebView hygiene
+  setTimeout(() => location.reload(), (cfg.lite ? 2 : 6) * 3600000);  // WebView hygiene (sooner on low-power screens)
   tickCorner();
   advance();
 }

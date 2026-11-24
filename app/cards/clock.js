@@ -300,8 +300,9 @@ function isle(h) {
   return el;
 }
 
-export function render(d, { h }) {
-  const styles = (d && d.styles && d.styles.length) ? d.styles : ['domo', 'space', 'robo'];
+export function render(d, { h, lite }) {
+  let styles = (d && d.styles && d.styles.length) ? d.styles : ['domo', 'space', 'robo'];
+  if (lite) styles = styles.filter((s) => s !== 'space').length ? styles.filter((s) => s !== 'space') : ['domo'];  // canvas starfield: too much for low-power screens
   const style = new URLSearchParams(location.search).get('style') || styles[turn++ % styles.length];  // ?style= for previews
   return ({ domo, space, robo, flip, isle }[style] || domo)(h);
 }
