@@ -98,6 +98,15 @@ function waitImages(el, ms = 8000) {
   ]);
 }
 
+// Free a slide's media right away (video decoder, YouTube player, hls.js buffers) instead of whenever the
+// WebView gets round to it: matters on 1 GB Echo Show 5s.
+function release(el) {
+  for (const f of el.querySelectorAll('iframe')) { try { f.src = 'about:blank'; } catch {} }
+  for (const v of el.querySelectorAll('video')) {
+    try { if (v._hls) v._hls.destroy(); v.pause(); v.removeAttribute('src'); v.load(); } catch {}
+  }
+}
+
 let z = 1, preloaded = null;  // preloaded: {card, data, el, ready, at}
 
 function build(card, data) {
@@ -130,7 +139,7 @@ async function present(card, data, el) {
   // layer 'over': play on top of what is showing (Emi's screen clean); otherwise replace it
   for (const old of [...stage.children]) {
     if (old === el || old.classList.contains('pre') || (card.layer === 'over' && !old.classList.contains('over'))) continue;
-    old.classList.remove('in'); setTimeout(() => old.remove(), 1500);
+    old.classList.remove('in'); setTimeout(() => { release(old); old.remove(); }, 1250);  // fade is 1.2 s
   }
   if (card.layer === 'over') el.classList.add('over');
   corner.hidden = card.overlay !== 'corner';
@@ -184,7 +193,7 @@ async function advance() {
         await p.ready;                       // usually done already: it buffered during the last photo
         pick = [p.card, p.data, p.el];
       } else {
-        if (preloaded) { preloaded.el.remove(); preloaded = null; }
+        if (preloaded) { release(preloaded.el); preloaded.el.remove(); preloaded = null; }
         pick = await nextInfo();
       }
       sinceInfo = 0;
@@ -193,7 +202,8 @@ async function advance() {
     if (!pick) pick = await nextInfo();
     if (pick) wait = await present(...pick);
     // the next slide will be an info card: start loading it now, hidden
-    if (!only && sinceInfo >= R().photos_between && !preloaded) setTimeout(() => preloadNext().catch(() => {}), 500);
+    // ...but only ~6 s ahead (enough for a webcam to start), so a hidden player isn't running for the whole photo
+    if (!only && sinceInfo >= R().photos_between && !preloaded) setTimeout(() => preloadNext().catch(() => {}), Math.max(500, wait - 6000));
   } catch (e) { console.warn('advance', e); }
   busy = false;
   timer = setTimeout(advance, wait);

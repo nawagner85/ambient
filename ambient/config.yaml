@@ -1,5 +1,5 @@
 name: ambient
-version: "0.2.0"
+version: "0.2.1"
 slug: ambient
 description: Alexa-style idle screen for kiosks and Echo Shows — photos, weather, scores, webcams, fun clocks
 url: https://github.com/nawagner85/ambient

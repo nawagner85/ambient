@@ -8,7 +8,9 @@ function player(d, h) {
   if (d.kind === 'youtube') {
     const q = new URLSearchParams({ autoplay: 1, mute: 1, controls: 0, playsinline: 1, rel: 0, modestbranding: 1,
       iv_load_policy: 3, disablekb: 1, fs: 0, enablejsapi: 1, origin: location.origin });
-    return h('iframe.yt', { src: `https://www.youtube.com/embed/${d.src}?${q}`, allow: 'autoplay; encrypted-media',
+    // Small screens (Echo Show 5: 960 px): a half-size player scaled up, so YouTube picks a lighter stream
+    const half = innerWidth * devicePixelRatio < 1100;
+    return h('iframe.yt' + (half ? '.half' : ''), { src: `https://www.youtube.com/embed/${d.src}?${q}`, allow: 'autoplay; encrypted-media',
       referrerpolicy: 'strict-origin-when-cross-origin', frameborder: 0, 'data-ready': 'load' });
   }
   if (d.kind === 'hls') {
@@ -17,7 +19,7 @@ function player(d, h) {
     if (v.canPlayType('application/vnd.apple.mpegurl')) v.src = d.src;
     else loadHls().then(() => {
       const hls = new window.Hls({ maxBufferLength: 10, lowLatencyMode: false });
-      hls.loadSource(d.src); hls.attachMedia(v);
+      hls.loadSource(d.src); hls.attachMedia(v); v._hls = hls;
       const t = setInterval(() => { if (!v.isConnected && v.dataset.shown) { hls.destroy(); clearInterval(t); } }, 2000);
     }).catch(() => {});
     v.addEventListener('playing', () => { v.dataset.shown = 1; });

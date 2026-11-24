@@ -129,7 +129,7 @@ function viewEditor() {
   const sizeSel = h('select', {
     onchange: (e) => {
       const s = SIZES[+e.target.value]; if (!s) return;
-      v.width = s[1]; v.height = s[2]; if (/Show 5/.test(s[0])) v.lite = true; render();
+      v.width = s[1]; v.height = s[2]; render();
     },
   }, h('option', { value: '' }, 'Custom'),
   SIZES.map((s, i) => h('option', { value: i, selected: s[1] === v.width && s[2] === v.height || null }, `${s[0]} (${s[1]}×${s[2]})`)));
