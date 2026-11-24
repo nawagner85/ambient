@@ -1,0 +1,167 @@
+# Optional, for the "Planes overhead" card: copy to /config/packages/ (packages enabled), replace LAT and LON
+# (2 decimals) in the two places below, restart HA, then switch the card on. Free data: adsb.lol + adsbdb.com.
+# Planes overhead (2026-11-23). Lives at /config/packages/planes_overhead.yaml
+# (configuration.yaml: homeassistant: packages: !include_dir_named packages).
+#
+# Positions: adsb.lol (free community ADS-B feed, no key) — every aircraft within 10 nm of the house (≈ naked-eye range: an airliner
+#   at cruise 10 nm out is ~30° up and still a visible dot; beyond that they're specks or below the treeline).
+#   The query point is the home location ROUNDED to 2 decimals (~1 km), so the exact address never leaves the LAN.
+# Details:   adsbdb.com (free, no key) — route by callsign, aircraft type/owner/photo by ICAO hex.
+#   Looked up only when the nearest plane changes, not on every poll.
+#   Routes are crowdsourced and keyed by flight number: occasionally stale or one leg of a multi-leg flight.
+#
+# Entities:
+#   sensor.adsb_lol_raw     raw feed (attribute `ac`), excluded from the recorder (big, changes every 30 s)
+#   sensor.planes_overhead  number of airborne aircraft within 10 nm (ground traffic at Paine Field filtered out)
+#   sensor.nearest_plane    callsign of the closest airborne aircraft ("none" when the sky is empty) + attributes:
+#                           flight, airline, origin, destination, route, aircraft, registration, owner, altitude_ft,
+#                           speed_kt, distance_nm, bearing, elevation_deg (degrees above the horizon), photo, hex
+
+rest:
+  - resource: https://api.adsb.lol/v2/point/LAT/LON/10
+    scan_interval: 30
+    timeout: 15
+    sensor:
+      - name: ADSB lol raw
+        unique_id: adsb_lol_raw
+        icon: mdi:radar
+        value_template: "{{ value_json.ac | length }}"
+        json_attributes:
+          - ac
+
+rest_command:
+  adsbdb_callsign:
+    url: "https://api.adsbdb.com/v0/callsign/{{ callsign }}"
+    method: GET
+    timeout: 10
+  adsbdb_aircraft:
+    url: "https://api.adsbdb.com/v0/aircraft/{{ hex }}"
+    method: GET
+    timeout: 10
+
+recorder:
+  exclude:
+    entities:
+      - sensor.adsb_lol_raw
+
+template:
+  - sensor:
+      - name: Planes overhead
+        unique_id: planes_overhead
+        icon: mdi:airplane
+        unit_of_measurement: planes
+        state_class: measurement
+        availability: "{{ has_value('sensor.adsb_lol_raw') }}"
+        state: >
+          {{ (state_attr('sensor.adsb_lol_raw', 'ac') or [])
+             | rejectattr('alt_baro', 'eq', 'ground') | list | count }}
+
+  - triggers:
+      - trigger: state
+        entity_id: sensor.adsb_lol_raw
+      - trigger: homeassistant
+        event: start
+      - trigger: event
+        event_type: event_template_reloaded
+    actions:
+      - variables:
+          ac: >
+            {{ (state_attr('sensor.adsb_lol_raw', 'ac') or [])
+               | rejectattr('alt_baro', 'eq', 'ground') | selectattr('dst', 'defined')
+               | sort(attribute='dst') | list }}
+          p: "{{ ac[0] if ac | count > 0 else {} }}"
+          hex: "{{ p.hex | default('') }}"
+          callsign: "{{ (p.flight | default('') or '') | trim }}"
+          prev_hex: "{{ state_attr('sensor.nearest_plane', 'hex') or '' }}"
+          prev_callsign: "{{ state_attr('sensor.nearest_plane', 'callsign') or '' }}"
+          route: {}
+          craft: {}
+      - if: "{{ callsign != '' and callsign != prev_callsign }}"
+        then:
+          - action: rest_command.adsbdb_callsign
+            data:
+              callsign: "{{ callsign }}"
+            response_variable: route_resp
+            continue_on_error: true
+          - variables:
+              route: >
+                {{ route_resp.content.response.flightroute
+                   if route_resp is defined and route_resp.status == 200
+                      and route_resp.content is mapping
+                   else {} }}
+      - if: "{{ hex != '' and hex != prev_hex }}"
+        then:
+          - action: rest_command.adsbdb_aircraft
+            data:
+              hex: "{{ hex }}"
+            response_variable: craft_resp
+            continue_on_error: true
+          - variables:
+              craft: >
+                {{ craft_resp.content.response.aircraft
+                   if craft_resp is defined and craft_resp.status == 200
+                      and craft_resp.content is mapping
+                   else {} }}
+      # Routes are keyed by flight number and often stale (AA845 showed BOS → MIA over Seattle at 4,900 ft).
+      # Keep the route only if the house is roughly on the way: origin→house→destination ≤ 1.1 × direct + 100 nm (rejects LAX → PDX over Everett, keeps SEA → OAK).
+      - variables:
+          route: >
+            {% if route and route.origin is defined and route.destination is defined %}
+            {% set h = (LAT * pi / 180, LON * pi / 180) %}
+            {% set o = (route.origin.latitude * pi / 180, route.origin.longitude * pi / 180) %}
+            {% set t = (route.destination.latitude * pi / 180, route.destination.longitude * pi / 180) %}
+            {% set ns = namespace(d=[]) %}
+            {% for a, b in [(o, t), (o, h), (h, t)] %}
+            {% set ns.d = ns.d + [3440.1 * 2 * asin(sqrt(sin((b[0] - a[0]) / 2) ** 2 + cos(a[0]) * cos(b[0]) * sin((b[1] - a[1]) / 2) ** 2))] %}
+            {% endfor %}
+            {{ route if ns.d[1] + ns.d[2] <= ns.d[0] * 1.1 + 100 else {} }}
+            {% else %}{}{% endif %}
+    sensor:
+      - name: Nearest plane
+        unique_id: nearest_plane
+        icon: mdi:airplane-marker
+        state: >
+          {{ callsign or p.r | default('') or hex or 'none' }}
+        attributes:
+          hex: "{{ hex }}"
+          callsign: "{{ callsign }}"
+          # Route/aircraft: fresh lookup if the plane changed, else carry the previous value forward.
+          flight: >
+            {% if not hex %}{% elif route %}{{ route.callsign_iata or callsign }}
+            {% elif callsign == prev_callsign %}{{ state_attr('sensor.nearest_plane', 'flight') or callsign }}
+            {% else %}{{ callsign }}{% endif %}
+          airline: >
+            {% if not hex %}{% elif route %}{{ route.airline.name | default('') if route.airline else '' }}
+            {% elif callsign == prev_callsign %}{{ state_attr('sensor.nearest_plane', 'airline') or '' }}{% endif %}
+          origin: >
+            {% if not hex %}{% elif route %}{{ route.origin.municipality }} ({{ route.origin.iata_code or route.origin.icao_code }})
+            {% elif callsign == prev_callsign %}{{ state_attr('sensor.nearest_plane', 'origin') or '' }}{% endif %}
+          destination: >
+            {% if not hex %}{% elif route %}{{ route.destination.municipality }} ({{ route.destination.iata_code or route.destination.icao_code }})
+            {% elif callsign == prev_callsign %}{{ state_attr('sensor.nearest_plane', 'destination') or '' }}{% endif %}
+          route: >
+            {% if not hex %}{% elif route %}{{ route.origin.iata_code or route.origin.icao_code }} → {{ route.destination.iata_code or route.destination.icao_code }}
+            {% elif callsign == prev_callsign %}{{ state_attr('sensor.nearest_plane', 'route') or '' }}{% endif %}
+          aircraft: >
+            {% if not hex %}{% elif craft %}{{ craft.manufacturer }} {{ craft.type }}
+            {% elif hex == prev_hex %}{{ state_attr('sensor.nearest_plane', 'aircraft') or p.t | default('') }}
+            {% else %}{{ p.t | default('') }}{% endif %}
+          owner: >
+            {% if not hex %}{% elif craft %}{{ craft.registered_owner }}
+            {% elif hex == prev_hex %}{{ state_attr('sensor.nearest_plane', 'owner') or '' }}{% endif %}
+          photo: >
+            {% if not hex %}{% elif craft %}{{ craft.url_photo or '' }}
+            {% elif hex == prev_hex %}{{ state_attr('sensor.nearest_plane', 'photo') or '' }}{% endif %}
+          registration: "{{ p.r | default('') }}"
+          type_code: "{{ p.t | default('') }}"
+          altitude_ft: "{{ p.alt_baro | default(none) }}"
+          speed_kt: "{{ p.gs | default(none) | round(0) if p.gs is defined else none }}"
+          distance_nm: "{{ p.dst | round(1) if p.dst is defined else none }}"
+          bearing: >
+            {% if p.dir is defined %}{{ ['N','NE','E','SE','S','SW','W','NW'][((p.dir + 22.5) // 45) | int % 8] }}{% endif %}
+          elevation_deg: >
+            {% if p.dst is defined and p.alt_baro is number %}{{ (atan2(p.alt_baro, [p.dst, 0.05] | max * 6076.1) * 180 / pi) | round(0) | int }}{% endif %}
+          planes_in_range: "{{ ac | count }}"
+
+# (The Great Room Echo Show pop-up automation lived here 2026-11-23 for a few hours; replaced by the ambient
+#  "planes" card, k8s/apps/ambient. Recover it from git history if wanted.)

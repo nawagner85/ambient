@@ -1,0 +1,891 @@
+{
+  "_doc": "Cards play in order of this list (round robin) between photo runs. Fields: id, type (cards/<type>.{py,js}), enabled, shows ([show ids], omit = all), when {days: 'mon-fri' | [..], hours: ['HH:MM-HH:MM', ..]}, duration (s), interrupt (cut in when it has data), repeat_minutes (interrupt: don't repeat the same item sooner), overlay ('corner' = clock+temp on top), every_minutes (show at most once per N minutes), layer ('over' = play on top of the current slide), options (passed to the card's fetch). These are the shipped defaults: the admin page (/admin) stores views, card overrides and keys in DATA_DIR (server.py docstring); 'shows' + each card's 'shows' only seed the views on first boot.",
+  "rotation": {
+    "photos_between": 2,
+    "photo_seconds": 10,
+    "card_seconds": 15,
+    "interrupt_poll_seconds": 15
+  },
+  "shows": {
+    "main": {
+      "name": "Living Room",
+      "width": 961,
+      "height": 601
+    }
+  },
+  "cards": [
+    {
+      "id": "photo",
+      "type": "photo",
+      "overlay": "corner",
+      "options": {
+        "album": "",
+        "deck": 24,
+        "exclude_prefixes": [],
+        "pair_portraits": true
+      }
+    },
+    {
+      "id": "weather",
+      "type": "weather",
+      "options": {
+        "entity": "weather.forecast_home",
+        "days": 5
+      }
+    },
+    {
+      "id": "commute",
+      "type": "commute",
+      "when": {
+        "days": "mon-fri",
+        "hours": [
+          "05:30-10:00",
+          "14:30-19:00"
+        ]
+      },
+      "options": {
+        "baseline_days": 7,
+        "routes": []
+      }
+    },
+    {
+      "id": "calendar",
+      "type": "calendar",
+      "every_minutes": 15,
+      "duration": 15,
+      "options": {
+        "days": 30,
+        "count": 5,
+        "calendars": []
+      }
+    },
+    {
+      "id": "emi",
+      "type": "emi",
+      "duration": 20,
+      "options": {
+        "entity": "sensor.emi_episode"
+      },
+      "enabled": false
+    },
+    {
+      "id": "scores",
+      "type": "scores",
+      "options": {
+        "recent_hours": 18,
+        "upcoming_hours": 30,
+        "teams": []
+      }
+    },
+    {
+      "id": "news",
+      "type": "news",
+      "every_minutes": 15,
+      "duration": 18,
+      "when": {
+        "hours": [
+          "06:00-22:00"
+        ]
+      },
+      "options": {
+        "count": 5
+      }
+    },
+    {
+      "id": "markets",
+      "type": "markets",
+      "every_minutes": 15,
+      "when": {
+        "days": "mon-fri",
+        "hours": [
+          "06:00-15:00"
+        ]
+      },
+      "options": {
+        "symbols": [
+          {
+            "sym": "^GSPC",
+            "name": "S&P 500"
+          },
+          {
+            "sym": "^DJI",
+            "name": "Dow Jones"
+          },
+          {
+            "sym": "^IXIC",
+            "name": "Nasdaq"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plex",
+      "type": "plex",
+      "every_minutes": 30,
+      "duration": 15,
+      "options": {
+        "count": 6,
+        "days": 21
+      }
+    },
+    {
+      "id": "stream-movies",
+      "type": "streaming",
+      "every_minutes": 30,
+      "duration": 15,
+      "options": {
+        "kind": "movie",
+        "days": 30,
+        "count": 6,
+        "providers": [
+          8,
+          1796,
+          15,
+          2528,
+          350,
+          9,
+          2100,
+          386,
+          387,
+          337
+        ]
+      },
+      "name": "New movies on streaming"
+    },
+    {
+      "id": "stream-tv",
+      "type": "streaming",
+      "every_minutes": 30,
+      "duration": 15,
+      "options": {
+        "kind": "tv",
+        "days": 3,
+        "count": 6,
+        "providers": [
+          8,
+          1796,
+          15,
+          2528,
+          350,
+          9,
+          2100,
+          386,
+          387,
+          337
+        ]
+      },
+      "name": "New TV on streaming"
+    },
+    {
+      "id": "schedule",
+      "type": "schedule",
+      "every_minutes": 20,
+      "options": {
+        "days": 7,
+        "max": 6,
+        "teams": []
+      }
+    },
+    {
+      "id": "webcam",
+      "type": "webcam",
+      "duration": 25,
+      "options": {
+        "daylight": true,
+        "min_sun": -2,
+        "cams": [
+          {
+            "id": "monterey-kelp",
+            "name": "Monterey Bay Aquarium",
+            "place": "Kelp Forest · Monterey, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 36.618,
+            "lon": -121.902,
+            "src": {
+              "youtube": "w3LjpFhySTg"
+            }
+          },
+          {
+            "id": "monterey-otter",
+            "name": "Monterey Bay Aquarium",
+            "place": "Sea Otters · Monterey, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 36.618,
+            "lon": -121.902,
+            "src": {
+              "youtube": "abbR-Ttd-cA"
+            }
+          },
+          {
+            "id": "monterey-jelly",
+            "name": "Monterey Bay Aquarium",
+            "place": "Jellies · Monterey, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 36.618,
+            "lon": -121.902,
+            "src": {
+              "youtube": "eQ_foBERmzA"
+            }
+          },
+          {
+            "id": "sdzoo-panda",
+            "name": "San Diego Zoo",
+            "place": "Pandas · San Diego, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 32.735,
+            "lon": -117.149,
+            "src": {
+              "hls": "https://zssd-panda2024.hls.camzonecdn.com/CamzoneStreams/zssd-panda2024/Playlist.m3u8"
+            }
+          },
+          {
+            "id": "sdzoo-penguin",
+            "name": "San Diego Zoo",
+            "place": "Penguins · San Diego, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 32.735,
+            "lon": -117.149,
+            "src": {
+              "hls": "https://zssd-penguin.hls.camzonecdn.com/CamzoneStreams/zssd-penguin/Playlist.m3u8"
+            }
+          },
+          {
+            "id": "toba-otters",
+            "name": "Toba Aquarium",
+            "place": "Sea Otters · Mie, Japan",
+            "tz": "Asia/Tokyo",
+            "lat": 34.48,
+            "lon": 136.85,
+            "src": {
+              "youtube": "YonXVFE9C3g"
+            }
+          },
+          {
+            "id": "amersfoort-tigers",
+            "name": "DierenPark Amersfoort",
+            "place": "Tigers · Netherlands",
+            "tz": "Europe/Amsterdam",
+            "lat": 52.15,
+            "lon": 5.37,
+            "src": {
+              "youtube": "XsATqwXs9eU"
+            }
+          },
+          {
+            "id": "africam-tembe",
+            "name": "Africam · Tembe",
+            "place": "Elephant reserve · South Africa",
+            "tz": "Africa/Johannesburg",
+            "lat": -27.0,
+            "lon": 32.4,
+            "src": {
+              "youtube": "gdrNUUf-cQw"
+            }
+          },
+          {
+            "id": "seattle-aquarium",
+            "name": "Seattle Aquarium",
+            "place": "Sea Otters · Seattle, WA",
+            "tz": "America/Los_Angeles",
+            "lat": 47.607,
+            "lon": -122.343,
+            "src": {
+              "youtube": "NqOmHpwMUxs"
+            }
+          },
+          {
+            "id": "monterey-penguin",
+            "name": "Monterey Bay Aquarium",
+            "place": "African Penguins · Monterey, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 36.618,
+            "lon": -121.902,
+            "src": {
+              "youtube": "QWGYS9IOqYc"
+            }
+          },
+          {
+            "id": "monterey-shark",
+            "name": "Monterey Bay Aquarium",
+            "place": "Sharks · Monterey, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 36.618,
+            "lon": -121.902,
+            "src": {
+              "youtube": "tEtg5Kg3voQ"
+            }
+          },
+          {
+            "id": "zv-giraffe",
+            "name": "Zoos Victoria",
+            "place": "Giraffes · Melbourne, Australia",
+            "src": {
+              "youtube": "hNexlUkTTuc"
+            },
+            "tz": "Australia/Melbourne",
+            "lat": -37.78,
+            "lon": 144.95
+          },
+          {
+            "id": "zv-snowleopard",
+            "name": "Zoos Victoria",
+            "place": "Snow Leopards · Melbourne, Australia",
+            "src": {
+              "youtube": "4wb6o3QvrxY"
+            },
+            "tz": "Australia/Melbourne",
+            "lat": -37.78,
+            "lon": 144.95
+          },
+          {
+            "id": "zv-penguin",
+            "name": "Zoos Victoria",
+            "place": "Penguins · Melbourne, Australia",
+            "src": {
+              "youtube": "3CAU9Ex_GKk"
+            },
+            "tz": "Australia/Melbourne",
+            "lat": -37.78,
+            "lon": 144.95
+          },
+          {
+            "id": "werribee-lions",
+            "name": "Werribee Open Range Zoo",
+            "place": "Lions · Victoria, Australia",
+            "tz": "Australia/Melbourne",
+            "lat": -37.92,
+            "lon": 144.67,
+            "src": {
+              "youtube": "gTz_7tKUfYM"
+            }
+          },
+          {
+            "id": "vancouver-otters",
+            "name": "Vancouver Aquarium",
+            "place": "Sea Otters · Vancouver, BC",
+            "tz": "America/Vancouver",
+            "lat": 49.3,
+            "lon": -123.13,
+            "src": {
+              "youtube": "9mg9PoFEX2U"
+            }
+          },
+          {
+            "id": "amersfoort-tigers2",
+            "name": "DierenPark Amersfoort",
+            "place": "Tigers (cam 2) · Netherlands",
+            "tz": "Europe/Amsterdam",
+            "lat": 52.15,
+            "lon": 5.37,
+            "src": {
+              "youtube": "LVl9TqP6hW8"
+            }
+          },
+          {
+            "id": "hdm-sharks",
+            "name": "Haus des Meeres",
+            "place": "Shark tank · Vienna, Austria",
+            "tz": "Europe/Vienna",
+            "lat": 48.198,
+            "lon": 16.353,
+            "src": {
+              "youtube": "WCW4iMTUGsc"
+            }
+          },
+          {
+            "id": "hdm-tunnel",
+            "name": "Haus des Meeres",
+            "place": "Atlantic tunnel · Vienna, Austria",
+            "tz": "Europe/Vienna",
+            "lat": 48.198,
+            "lon": 16.353,
+            "src": {
+              "youtube": "sCtGk3-dzLs"
+            }
+          },
+          {
+            "id": "ecomare-seals",
+            "name": "Ecomare",
+            "place": "Seals, underwater · Texel, Netherlands",
+            "tz": "Europe/Amsterdam",
+            "lat": 53.07,
+            "lon": 4.76,
+            "src": {
+              "youtube": "sg-J_5KC8ZU"
+            }
+          },
+          {
+            "id": "pieterburen-seals",
+            "name": "Seal Centre Pieterburen",
+            "place": "Seals, underwater · Netherlands",
+            "tz": "Europe/Amsterdam",
+            "lat": 53.4,
+            "lon": 6.21,
+            "src": {
+              "youtube": "DF3jShJmE2g"
+            }
+          },
+          {
+            "id": "gaiazoo-gorillas",
+            "name": "GaiaZOO",
+            "place": "Gorillas · Kerkrade, Netherlands",
+            "tz": "Europe/Amsterdam",
+            "lat": 50.86,
+            "lon": 6.05,
+            "src": {
+              "youtube": "jRyAwGkvQec"
+            }
+          },
+          {
+            "id": "chengdu-pandas",
+            "name": "Chengdu Panda Base",
+            "place": "Giant Pandas · Chengdu, China",
+            "tz": "Asia/Shanghai",
+            "lat": 30.73,
+            "lon": 104.15,
+            "src": {
+              "youtube": "SUXPnIEpbn4"
+            }
+          },
+          {
+            "id": "oarai-sharks",
+            "name": "Aqua World Oarai",
+            "place": "Sea of Sharks · Ibaraki, Japan",
+            "tz": "Asia/Tokyo",
+            "lat": 36.32,
+            "lon": 140.59,
+            "src": {
+              "youtube": "E1zLXKr44Ec"
+            }
+          },
+          {
+            "id": "tokkari-seals",
+            "name": "Okhotsk Tokkari Center",
+            "place": "Seals · Mombetsu, Japan",
+            "tz": "Asia/Tokyo",
+            "lat": 44.33,
+            "lon": 143.38,
+            "src": {
+              "youtube": "EmtsXnYXyVM"
+            }
+          },
+          {
+            "id": "satsukiyama-wombats",
+            "name": "Satsukiyama Zoo",
+            "place": "Wombats · Ikeda, Japan",
+            "tz": "Asia/Tokyo",
+            "lat": 34.82,
+            "lon": 135.43,
+            "src": {
+              "youtube": "m0zx7vPJtC0"
+            }
+          },
+          {
+            "id": "kumamoto-elephant",
+            "name": "Kumamoto City Zoo",
+            "place": "African Elephant · Kumamoto, Japan",
+            "tz": "Asia/Tokyo",
+            "lat": 32.79,
+            "lon": 130.74,
+            "src": {
+              "youtube": "iLsJ1R8iz78"
+            }
+          },
+          {
+            "id": "komoro-penguins",
+            "name": "Komoro Zoo",
+            "place": "Penguins · Nagano, Japan",
+            "tz": "Asia/Tokyo",
+            "lat": 36.33,
+            "lon": 138.42,
+            "src": {
+              "youtube": "C8exDwZgZIw"
+            }
+          },
+          {
+            "id": "awaji-monkeys",
+            "name": "Awaji Island Monkey Center",
+            "place": "Japanese Macaques · Hyogo, Japan",
+            "tz": "Asia/Tokyo",
+            "lat": 34.37,
+            "lon": 134.83,
+            "src": {
+              "youtube": "lsxYH2XQQCg"
+            }
+          },
+          {
+            "id": "phillip-penguins",
+            "name": "Phillip Island",
+            "place": "Penguin burrows · Victoria, Australia",
+            "tz": "Australia/Melbourne",
+            "lat": -38.51,
+            "lon": 145.15,
+            "src": {
+              "youtube": "yTxngt2eVDM"
+            }
+          },
+          {
+            "id": "oamaru-penguins",
+            "name": "Ōamaru Blue Penguin Colony",
+            "place": "Little Blue Penguins · New Zealand",
+            "tz": "Pacific/Auckland",
+            "lat": -45.11,
+            "lon": 170.98,
+            "src": {
+              "youtube": "7V_7mzwjZaE"
+            }
+          },
+          {
+            "id": "aop-jellies",
+            "name": "Aquarium of the Pacific",
+            "place": "Jellies · Long Beach, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 33.76,
+            "lon": -118.2,
+            "src": {
+              "youtube": "IYG9fnz40-E"
+            }
+          },
+          {
+            "id": "aop-penguins",
+            "name": "Aquarium of the Pacific",
+            "place": "Penguins, underwater · Long Beach, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 33.76,
+            "lon": -118.2,
+            "src": {
+              "youtube": "KlVMg-8SIlw"
+            }
+          },
+          {
+            "id": "cincy-otters",
+            "name": "Cincinnati Zoo",
+            "place": "Sea Otters · Cincinnati, OH",
+            "tz": "America/New_York",
+            "lat": 39.15,
+            "lon": -84.51,
+            "src": {
+              "youtube": "-VfIE3__PR0"
+            }
+          },
+          {
+            "id": "cincy-hippos",
+            "name": "Cincinnati Zoo",
+            "place": "Hippos · Cincinnati, OH",
+            "tz": "America/New_York",
+            "lat": 39.15,
+            "lon": -84.51,
+            "src": {
+              "youtube": "Sr_quFooKEs"
+            }
+          },
+          {
+            "id": "kc-polarbear",
+            "name": "Kansas City Zoo",
+            "place": "Polar Bear · Kansas City, MO",
+            "tz": "America/Chicago",
+            "lat": 39.01,
+            "lon": -94.53,
+            "src": {
+              "youtube": "BSUnBPvX9K4"
+            }
+          },
+          {
+            "id": "stl-penguins",
+            "name": "Saint Louis Zoo",
+            "place": "Penguins · St. Louis, MO",
+            "tz": "America/Chicago",
+            "lat": 38.64,
+            "lon": -90.29,
+            "src": {
+              "youtube": "k1rxtmWa8kM"
+            }
+          },
+          {
+            "id": "calacademy-penguins",
+            "name": "California Academy of Sciences",
+            "place": "Penguins · San Francisco, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 37.77,
+            "lon": -122.47,
+            "src": {
+              "youtube": "tkh8PmqHEdA"
+            }
+          },
+          {
+            "id": "trevor-redpandas",
+            "name": "Trevor Zoo",
+            "place": "Red Pandas · Millbrook, NY",
+            "tz": "America/New_York",
+            "lat": 41.79,
+            "lon": -73.7,
+            "src": {
+              "youtube": "dkFYrv1NFPg"
+            }
+          },
+          {
+            "id": "aop-reef",
+            "name": "Aquarium of the Pacific",
+            "place": "Tropical Reef (Palau) · Long Beach, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 33.762,
+            "lon": -118.197,
+            "src": {
+              "youtube": "DHUnz4dyb54"
+            }
+          },
+          {
+            "id": "aop-coral",
+            "name": "Aquarium of the Pacific",
+            "place": "Coral & parrotfish · Long Beach, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 33.762,
+            "lon": -118.197,
+            "src": {
+              "youtube": "h0F818upkgI"
+            }
+          },
+          {
+            "id": "calacademy-reef",
+            "name": "California Academy of Sciences",
+            "place": "Philippine Coral Reef · San Francisco, CA",
+            "tz": "America/Los_Angeles",
+            "lat": 37.77,
+            "lon": -122.466,
+            "src": {
+              "youtube": "je7nCiZhEJE"
+            }
+          },
+          {
+            "id": "nmmba-coral",
+            "name": "National Museum of Marine Biology & Aquarium",
+            "place": "Coral Kingdom · Pingtung, Taiwan",
+            "tz": "Asia/Taipei",
+            "lat": 22.046,
+            "lon": 120.698,
+            "src": {
+              "youtube": "WyP-yRGgQW4"
+            }
+          },
+          {
+            "id": "curacao-reef",
+            "name": "Curaçao Sea Aquarium",
+            "place": "Caribbean reef fish & rays · Curaçao",
+            "tz": "America/Curacao",
+            "lat": 12.084,
+            "lon": -68.896,
+            "src": {
+              "youtube": "P9gFih_9T6k"
+            }
+          },
+          {
+            "id": "utila-wall",
+            "name": "Utopia Village reef",
+            "place": "Top of the Wall · Utila, Honduras",
+            "tz": "America/Tegucigalpa",
+            "lat": 16.09,
+            "lon": -86.95,
+            "src": {
+              "youtube": "1zcIUk66HX4"
+            }
+          },
+          {
+            "id": "utila-dock",
+            "name": "Utopia Village reef",
+            "place": "Front of Dock · Utila, Honduras",
+            "tz": "America/Tegucigalpa",
+            "lat": 16.09,
+            "lon": -86.95,
+            "src": {
+              "youtube": "Kf-x20Yq0_A"
+            }
+          },
+          {
+            "id": "coral-city",
+            "name": "Coral City Camera",
+            "place": "Urban reef · PortMiami, FL",
+            "tz": "America/New_York",
+            "lat": 25.771,
+            "lon": -80.135,
+            "src": {
+              "youtube": "7i8ARjIeM2k"
+            }
+          },
+          {
+            "id": "kona-reef",
+            "name": "MEGA Lab reef cam",
+            "place": "Reef · Kona, Hawaii",
+            "tz": "Pacific/Honolulu",
+            "lat": 19.73,
+            "lon": -156.06,
+            "src": {
+              "youtube": "jOp_aAXsYmE"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mountain",
+      "type": "mountain",
+      "every_minutes": 20,
+      "duration": 15,
+      "options": {
+        "lat": 47.62,
+        "lon": -122.35,
+        "min_sun": 3,
+        "cams": [
+          {
+            "id": "needle-rainier",
+            "name": "Space Needle panorama",
+            "slice": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": "airquality",
+      "type": "airquality",
+      "every_minutes": 20,
+      "options": {
+        "threshold": 50,
+        "smoke_pm25": 35
+      }
+    },
+    {
+      "id": "sky",
+      "type": "sky",
+      "every_minutes": 30,
+      "options": {}
+    },
+    {
+      "id": "history",
+      "type": "history",
+      "every_minutes": 45,
+      "duration": 18,
+      "when": {
+        "hours": [
+          "06:00-22:00"
+        ]
+      },
+      "options": {
+        "count": 3
+      }
+    },
+    {
+      "id": "wordofday",
+      "type": "wordofday",
+      "every_minutes": 45,
+      "duration": 15,
+      "when": {
+        "hours": [
+          "06:00-22:00"
+        ]
+      },
+      "options": {}
+    },
+    {
+      "id": "zoltar",
+      "type": "zoltar",
+      "every_minutes": 45,
+      "duration": 18,
+      "options": {
+        "per_day": 6
+      }
+    },
+    {
+      "id": "clock",
+      "type": "clock",
+      "every_minutes": 30,
+      "duration": 15,
+      "options": {
+        "styles": [
+          "isle",
+          "domo",
+          "flip",
+          "isle",
+          "space",
+          "robo"
+        ]
+      }
+    },
+    {
+      "id": "screenclean",
+      "type": "screenclean",
+      "layer": "over",
+      "every_minutes": 60,
+      "duration": 12,
+      "when": {
+        "hours": [
+          "07:00-21:30"
+        ]
+      },
+      "options": {
+        "caption": "Screen cleaned by Emi"
+      }
+    },
+    {
+      "id": "nowplaying",
+      "type": "nowplaying",
+      "interrupt": true,
+      "duration": 20,
+      "repeat_minutes": 30,
+      "options": {
+        "players": []
+      }
+    },
+    {
+      "id": "wxalert",
+      "type": "wxalert",
+      "interrupt": true,
+      "duration": 20,
+      "repeat_minutes": 180,
+      "options": {
+        "min_severity": "Moderate"
+      }
+    },
+    {
+      "id": "rain",
+      "type": "rain",
+      "interrupt": true,
+      "duration": 15,
+      "repeat_minutes": 120,
+      "when": {
+        "hours": [
+          "06:30-22:00"
+        ]
+      },
+      "options": {
+        "min_mm": 0.1,
+        "ahead_minutes": 60
+      }
+    },
+    {
+      "id": "breaking",
+      "type": "breaking",
+      "interrupt": true,
+      "duration": 20,
+      "repeat_minutes": 240,
+      "when": {
+        "hours": [
+          "07:00-22:00"
+        ]
+      },
+      "options": {
+        "fresh_minutes": 40
+      }
+    },
+    {
+      "id": "planes",
+      "type": "planes",
+      "interrupt": true,
+      "duration": 20,
+      "repeat_minutes": 10,
+      "options": {
+        "entity": "sensor.nearest_plane",
+        "min_elevation": 30
+      },
+      "enabled": false
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+# Without Home Assistant OS: run ambient on any Docker host (amd64 or arm64), then open http://<host>:8099/admin
+services:
+  ambient:
+    image: ghcr.io/nawagner85/ambient:latest
+    restart: unless-stopped
+    ports: ["8099:8099"]
+    environment:
+      TZ: America/Los_Angeles
+      # ADMIN_PASSWORD: change-me   # or set it on the admin page
+    volumes: ["./ambient-data:/data"]
